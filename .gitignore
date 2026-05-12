@@ -1,0 +1,13 @@
+# Ignore IntelliJ IDEA project files
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Ignore compiled Java class files and output directory
+out/
+*.class
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
