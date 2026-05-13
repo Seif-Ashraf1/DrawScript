@@ -121,9 +121,22 @@ public class Scanner {
             case "circle": tokens.add(new Token(TokenType.COMMAND, word, line)); return true;
             case "color":  tokens.add(new Token(TokenType.COMMAND,  word, line)); return true;
             default:
-                System.out.println("LEXICAL ERROR: invalid syntax (unknown token '" + word + "') at line " + line);
-                tokens.add(new Token(TokenType.UNKNOWN, word, line));
-                return false;
+                int lookahead = pos;
+                while (lookahead < source.length() 
+                       && source.charAt(lookahead) == ' ') {
+                    lookahead++;
+                }
+                if (lookahead + 1 < source.length()
+                        && source.charAt(lookahead) == ':'
+                        && source.charAt(lookahead + 1) == '=') {
+                    tokens.add(new Token(TokenType.IDENTIFIER, word, line));
+                    return true;
+                } else {
+                    System.out.println("LEXICAL ERROR: invalid syntax (unknown token '"
+                            + word + "') at line " + line);
+                    tokens.add(new Token(TokenType.UNKNOWN, word, line));
+                    return false;
         }
+    }
     }
 }
