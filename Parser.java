@@ -5,10 +5,12 @@ public class Parser {
 
     private List<Token> tokens;
     private int pos;
+    private boolean hasError;
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
         this.pos = 0;
+        this.hasError = false;
     }
 
     // ============================================================
@@ -162,6 +164,7 @@ public class Parser {
                         + "' evaluates to negative value (" + result + ")"
                         + " at line " + line
                         + " — drawing coordinates must be non-negative.");
+                hasError = true;
             }
         }
     }
@@ -192,6 +195,7 @@ public class Parser {
                     if (right == 0) {
                         System.out.println("SEMANTIC ERROR: Division by zero"
                                 + " at line " + currentLine());
+                        hasError = true;
                         return 0;
                     }
                     return left / right;
@@ -284,5 +288,13 @@ public class Parser {
 
     private boolean isAtEnd() {
         return current().type == TokenType.EOF;
+    }
+
+    // ============================================================
+    // ERROR STATUS QUERY
+    // ============================================================
+
+    public boolean hasErrors() {
+        return hasError;
     }
 }

@@ -402,13 +402,17 @@ public class DrawScriptGUI extends JFrame {
         errorsArea.setText(errors.isEmpty() ? "✔  No errors detected." : errors);
         errorsArea.setForeground(errors.isEmpty() ? OK_COLOR : ERR_COLOR);
 
-        // ── Execute drawing ───────────────────────────────
-        drawCanvas.execute(program.statements);
+        // ── Execute drawing ONLY if no errors ──────────────
+        if (!parser.hasErrors() && errors.isEmpty()) {
+            drawCanvas.execute(program.statements);
+        } else {
+            drawCanvas.clear();
+        }
 
         // ── Status bar ────────────────────────────────────
         long errCount = Arrays.stream(errors.split("\n"))
                               .filter(l -> l.contains("ERROR")).count();
-        if (errors.isEmpty() || errCount == 0) {
+        if (errors.isEmpty() && !parser.hasErrors() || errCount == 0) {
             statusLabel.setText("  ✔  Compiled OK — "
                 + tokens.size() + " tokens, "
                 + program.statements.size() + " statements");
@@ -570,6 +574,11 @@ public class DrawScriptGUI extends JFrame {
                 g2.setFont(new Font("SansSerif", Font.ITALIC, 14));
                 g2.drawString("Run a program to see the drawing output here.", 30, getHeight()/2);
             }
+        }
+
+        void clear() {
+            cmds.clear();
+            repaint();
         }
     }
 
