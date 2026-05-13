@@ -33,10 +33,7 @@ public class Parser {
         Token t = current();
 
         // Commands
-        if (t.type == TokenType.COMMAND   ||
-                t.type == TokenType.COMMAND   ||
-                t.type == TokenType.COMMAND ||
-                t.type == TokenType.COMMAND) {
+        if (t.type == TokenType.COMMAND) {
             return parseCommand();
         }
 

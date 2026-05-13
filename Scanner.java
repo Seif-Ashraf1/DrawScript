@@ -44,7 +44,9 @@ public class Scanner {
 
             // Identifiers and keywords
             if (Character.isLetter(c) || c == '_') {
-                scanIdentifierOrKeyword();
+                if (!scanIdentifierOrKeyword()) {
+                    break;
+                }
                 continue;
             }
 
@@ -104,7 +106,7 @@ public class Scanner {
         tokens.add(new Token(TokenType.NUMBER, num, line));
     }
 
-    private void scanIdentifierOrKeyword() {
+    private boolean scanIdentifierOrKeyword() {
         int start = pos;
         while (pos < source.length() &&
                (Character.isLetterOrDigit(source.charAt(pos)) || source.charAt(pos) == '_')) {
@@ -114,11 +116,14 @@ public class Scanner {
 
         // Match keywords (commands)
         switch (word.toLowerCase()) {
-            case "move":   tokens.add(new Token(TokenType.COMMAND,   word, line)); break;
-            case "line":   tokens.add(new Token(TokenType.COMMAND,   word, line)); break;
-            case "circle": tokens.add(new Token(TokenType.COMMAND, word, line)); break;
-            case "color":  tokens.add(new Token(TokenType.COMMAND,  word, line)); break;
-            default:       tokens.add(new Token(TokenType.IDENTIFIER, word, line)); break;
+            case "move":   tokens.add(new Token(TokenType.COMMAND,   word, line)); return true;
+            case "line":   tokens.add(new Token(TokenType.COMMAND,   word, line)); return true;
+            case "circle": tokens.add(new Token(TokenType.COMMAND, word, line)); return true;
+            case "color":  tokens.add(new Token(TokenType.COMMAND,  word, line)); return true;
+            default:
+                System.out.println("LEXICAL ERROR: invalid syntax (unknown token '" + word + "') at line " + line);
+                tokens.add(new Token(TokenType.UNKNOWN, word, line));
+                return false;
         }
     }
 }
