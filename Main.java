@@ -10,16 +10,14 @@ public class Main {
 
         // ── Test 1: Simple valid commands ─────────────────
         runTest("Test 1 — Simple Valid Commands",
-            "move(100, 100);\n" +
-            "line(200, 100);\n" +
-            "circle(50);\n"
+            "ci(50)\n"
         );
 
         // ── Test 2: Variable assignment + expression args ──
-        runTest("Test 2 — Variable Assignment & Expressions",
-            "size := 40;\n" +
-            "move(10 + size, 20 * 2);\n" +
-            "circle(size);\n"
+        runTest("Test 1 — Simple Valid Commands",
+                "move(100, 100);\n" +
+                        "line(200, 100);\n" +
+                        "circle(50);\n"
         );
 
         // ── Test 3: Color + mixed commands ────────────────

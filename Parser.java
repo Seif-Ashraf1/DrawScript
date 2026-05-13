@@ -33,16 +33,35 @@ public class Parser {
         Token t = current();
 
         // Commands
-        if (t.type == TokenType.MOVE   ||
-            t.type == TokenType.LINE   ||
-            t.type == TokenType.CIRCLE ||
-            t.type == TokenType.COLOR) {
+        if (t.type == TokenType.COMMAND   ||
+                t.type == TokenType.COMMAND   ||
+                t.type == TokenType.COMMAND ||
+                t.type == TokenType.COMMAND) {
             return parseCommand();
         }
 
         // Assignment: identifier := expression
         if (t.type == TokenType.IDENTIFIER && lookAhead().type == TokenType.ASSIGN) {
             return parseAssignment();
+        }
+
+        // Unknown command: identifier followed by ( — looks like a command call but not recognized
+        if (t.type == TokenType.IDENTIFIER && lookAhead().type == TokenType.LPAREN) {
+            System.out.println("SYNTAX ERROR: Unknown command '" + t.lexeme + "' at line " + t.line
+                    + ". Valid commands are: move, line, circle, color");
+            // skip the whole statement: name ( ... ) ;
+            advance(); // skip identifier
+            advance(); // skip (
+            // skip everything until ) or ; or newline or EOF
+            while (!isAtEnd()
+                    && current().type != TokenType.RPAREN
+                    && current().type != TokenType.SEMICOLON
+                    && current().type != TokenType.NEWLINE) {
+                advance();
+            }
+            if (current().type == TokenType.RPAREN) advance();   // skip )
+            if (current().type == TokenType.SEMICOLON) advance(); // skip ;
+            return null;
         }
 
         // Unknown statement
@@ -94,7 +113,7 @@ public class Parser {
     private ASTNode parseExpression() {
         ASTNode left = parseTerm();
 
-        while (current().type == TokenType.PLUS || current().type == TokenType.MINUS) {
+        while (current().type == TokenType.OP || current().type == TokenType.OP) {
             String op = advance().lexeme;
             ASTNode right = parseTerm();
             left = new BinaryNode(op, left, right);
@@ -109,7 +128,7 @@ public class Parser {
     private ASTNode parseTerm() {
         ASTNode left = parseFactor();
 
-        while (current().type == TokenType.STAR || current().type == TokenType.SLASH) {
+        while (current().type == TokenType.OP || current().type == TokenType.OP) {
             String op = advance().lexeme;
             ASTNode right = parseFactor();
             left = new BinaryNode(op, left, right);
@@ -177,7 +196,7 @@ public class Parser {
             advance();
         } else {
             System.out.println("SYNTAX ERROR: Expected '" + what +
-                "' but found '" + current().lexeme + "' at line " + current().line);
+                    "' but found '" + current().lexeme + "' at line " + current().line);
         }
     }
 
@@ -191,7 +210,7 @@ public class Parser {
             // fine — last statement with no terminator
         } else {
             System.out.println("SYNTAX ERROR: Expected ';' or newline but found '" +
-                current().lexeme + "' at line " + current().line);
+                    current().lexeme + "' at line " + current().line);
         }
     }
 }

@@ -50,10 +50,10 @@ public class Scanner {
 
             // Operators and punctuation
             switch (c) {
-                case '+': tokens.add(new Token(TokenType.PLUS,      "+", line)); pos++; break;
-                case '-': tokens.add(new Token(TokenType.MINUS,     "-", line)); pos++; break;
-                case '*': tokens.add(new Token(TokenType.STAR,      "*", line)); pos++; break;
-                case '/': tokens.add(new Token(TokenType.SLASH,     "/", line)); pos++; break;
+                case '+': tokens.add(new Token(TokenType.OP,      "+", line)); pos++; break;
+                case '-': tokens.add(new Token(TokenType.OP,     "-", line)); pos++; break;
+                case '*': tokens.add(new Token(TokenType.OP,      "*", line)); pos++; break;
+                case '/': tokens.add(new Token(TokenType.OP,     "/", line)); pos++; break;
                 case '(': tokens.add(new Token(TokenType.LPAREN,    "(", line)); pos++; break;
                 case ')': tokens.add(new Token(TokenType.RPAREN,    ")", line)); pos++; break;
                 case ';': tokens.add(new Token(TokenType.SEMICOLON, ";", line)); pos++; break;
@@ -114,10 +114,10 @@ public class Scanner {
 
         // Match keywords (commands)
         switch (word.toLowerCase()) {
-            case "move":   tokens.add(new Token(TokenType.MOVE,   word, line)); break;
-            case "line":   tokens.add(new Token(TokenType.LINE,   word, line)); break;
-            case "circle": tokens.add(new Token(TokenType.CIRCLE, word, line)); break;
-            case "color":  tokens.add(new Token(TokenType.COLOR,  word, line)); break;
+            case "move":   tokens.add(new Token(TokenType.COMMAND,   word, line)); break;
+            case "line":   tokens.add(new Token(TokenType.COMMAND,   word, line)); break;
+            case "circle": tokens.add(new Token(TokenType.COMMAND, word, line)); break;
+            case "color":  tokens.add(new Token(TokenType.COMMAND,  word, line)); break;
             default:       tokens.add(new Token(TokenType.IDENTIFIER, word, line)); break;
         }
     }

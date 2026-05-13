@@ -1,15 +1,21 @@
 public enum TokenType {
-    // Commands
-    MOVE, LINE, CIRCLE, COLOR,
+    // Commands - the drawing
+    COMMAND,
 
     // Literals & Identifiers
-    NUMBER, IDENTIFIER, STRING,
+    NUMBER, // 100 ,42
+    IDENTIFIER, // size , x
+    STRING,
 
     // Operators
-    PLUS, MINUS, STAR, SLASH, ASSIGN,
+    OP, ASSIGN,
 
     // Punctuation
-    LPAREN, RPAREN, SEMICOLON, COMMA, NEWLINE,
+    LPAREN, // (
+    RPAREN,// )
+    SEMICOLON,// ;
+    COMMA, // ,
+    NEWLINE,// end of line
 
     // Special
     EOF, UNKNOWN

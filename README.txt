@@ -20,26 +20,7 @@ FILES
 
 
 GRAMMAR (Recursive-Descent Friendly)
---------------------------------------
-  program    → statement*
 
-  statement  → command
-             | assignment
-
-  command    → ('move' | 'line' | 'circle' | 'color')
-               '(' arglist ')' (';' | NEWLINE)
-
-  arglist    → expression (',' expression)*
-
-  assignment → IDENTIFIER ':=' expression (';' | NEWLINE)
-
-  expression → term (('+' | '-') term)*
-
-  term       → factor (('*' | '/') factor)*
-
-  factor     → NUMBER
-             | IDENTIFIER
-             | '(' expression ')'
 
 
 TOKEN CATEGORIES
