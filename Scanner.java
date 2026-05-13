@@ -30,7 +30,11 @@ public class Scanner {
 
             // Newline
             if (c == '\n') {
+                if (!checkSemicolonBeforeNewline()) {
+                    break;  // Stop scanning on missing semicolon error
+                }
                 tokens.add(new Token(TokenType.NEWLINE, "\\n", line));
+
                 line++;
                 pos++;
                 continue;
@@ -99,6 +103,29 @@ public class Scanner {
         while (pos < source.length() && source.charAt(pos) != '\n') pos++;
     }
 
+    private boolean checkSemicolonBeforeNewline() {
+    // Walk backwards through already-collected tokens
+    // Skip any NEWLINE tokens we already recorded
+    for (int i = tokens.size() - 1; i >= 0; i--) {
+        Token t = tokens.get(i);
+
+        if (t.type == TokenType.NEWLINE) continue; // skip previous newlines
+
+        // First real token found going backwards
+        if (t.type == TokenType.SEMICOLON) {
+            return true; // ✅ last real token was ; → fine
+        } else if (t.type == TokenType.EOF) {
+            return true; // beginning of file, nothing to check
+        } else {
+            // ❌ last real token was NOT ; → missing semicolon
+            System.out.println("LEXICAL ERROR: Missing ';' after '"
+                    + t.lexeme + "' at line " + t.line);
+            return false; // Terminate scanning
+        }
+    }
+    return true;
+}
+
     private void scanNumber() {
         int start = pos;
         while (pos < source.length() && Character.isDigit(source.charAt(pos))) pos++;
@@ -115,7 +142,7 @@ public class Scanner {
         String word = source.substring(start, pos);
 
         // Match keywords (commands)
-        switch (word.toLowerCase()) {
+        switch (word) {
             case "move":   tokens.add(new Token(TokenType.COMMAND,   word, line)); return true;
             case "line":   tokens.add(new Token(TokenType.COMMAND,   word, line)); return true;
             case "circle": tokens.add(new Token(TokenType.COMMAND, word, line)); return true;

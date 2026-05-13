@@ -536,6 +536,14 @@ public class DrawScriptGUI extends JFrame {
             return null; // identifiers unknown at this stage
         }
 
+        private int toScreenX(int userX) {
+            return getWidth() / 2 + userX;
+        }
+
+        private int toScreenY(int userY) {
+            return getHeight() / 2 - userY;
+        }
+
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -551,16 +559,20 @@ public class DrawScriptGUI extends JFrame {
             for (DrawCmd c : cmds) {
                 g2.setColor(c.color);
                 if ("line".equals(c.kind)) {
-                    g2.drawLine(c.x1, c.y1, c.x2, c.y2);
+                    g2.drawLine(toScreenX(c.x1), toScreenY(c.y1), toScreenX(c.x2), toScreenY(c.y2));
                 } else if ("circle".equals(c.kind)) {
                     int r = c.r;
-                    g2.drawOval(c.x1 - r, c.y1 - r, 2*r, 2*r);
+                    int sx = toScreenX(c.x1);
+                    int sy = toScreenY(c.y1);
+                    g2.drawOval(sx - r, sy - r, 2*r, 2*r);
                 }
             }
 
             // origin dot
             g2.setColor(new Color(200, 80, 80, 180));
-            g2.fillOval(-4, -4, 8, 8);
+            int originX = getWidth() / 2;
+            int originY = getHeight() / 2;
+            g2.fillOval(originX - 4, originY - 4, 8, 8);
 
             if (cmds.isEmpty()) {
                 g2.setColor(new Color(180, 180, 200));
