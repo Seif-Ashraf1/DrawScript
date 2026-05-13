@@ -8,7 +8,7 @@ public enum TokenType {
     STRING,
 
     // Operators
-    OP, ASSIGN,
+    OP, ASSIGN, 
 
     // Punctuation
     LPAREN, // (

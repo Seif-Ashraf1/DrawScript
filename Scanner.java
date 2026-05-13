@@ -117,7 +117,6 @@ public class Scanner {
         } else if (t.type == TokenType.EOF) {
             return true; // beginning of file, nothing to check
         } else {
-            // ❌ last real token was NOT ; → missing semicolon
             System.out.println("LEXICAL ERROR: Missing ';' after '"
                     + t.lexeme + "' at line " + t.line);
             return false; // Terminate scanning

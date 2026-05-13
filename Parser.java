@@ -11,131 +11,108 @@ public class Parser {
         this.pos = 0;
     }
 
-    // ── entry point ───────────────────────────────────────
+    // ============================================================
+    // ENTRY POINT
+    // ============================================================
 
     public ProgramNode parseProgram() {
         List<ASTNode> stmts = new ArrayList<>();
-
         while (!isAtEnd()) {
             skipNewlines();
             if (isAtEnd()) break;
             ASTNode stmt = parseStatement();
             if (stmt != null) stmts.add(stmt);
+            skipNewlines();
         }
-
         return new ProgramNode(stmts);
     }
 
-    // ── statement ─────────────────────────────────────────
-    // statement → command | assignment
+    // ============================================================
+    // STATEMENT PARSING
+    // ============================================================
 
     private ASTNode parseStatement() {
         Token t = current();
 
-        // Commands
         if (t.type == TokenType.COMMAND) {
             return parseCommand();
         }
 
-        // Assignment: identifier := expression
         if (t.type == TokenType.IDENTIFIER && lookAhead().type == TokenType.ASSIGN) {
             return parseAssignment();
         }
 
-        // Unknown command: identifier followed by ( — looks like a command call but not recognized
-        if (t.type == TokenType.IDENTIFIER && lookAhead().type == TokenType.LPAREN) {
-            System.out.println("SYNTAX ERROR: Unknown command '" + t.lexeme + "' at line " + t.line
-                    + ". Valid commands are: move, line, circle, color");
-            // skip the whole statement: name ( ... ) ;
-            advance(); // skip identifier
-            advance(); // skip (
-            // skip everything until ) or ; or newline or EOF
-            while (!isAtEnd()
-                    && current().type != TokenType.RPAREN
-                    && current().type != TokenType.SEMICOLON
-                    && current().type != TokenType.NEWLINE) {
-                advance();
-            }
-            if (current().type == TokenType.RPAREN) advance();   // skip )
-            if (current().type == TokenType.SEMICOLON) advance(); // skip ;
-            return null;
-        }
-
-        // Unknown statement
-        System.out.println("SYNTAX ERROR: Unexpected token '" + t.lexeme + "' at line " + t.line);
-        advance(); // skip and recover
+        System.out.println("SYNTAX ERROR: Unknown statement '"
+                + t.lexeme + "' at line " + t.line);
+        advance();
         return null;
     }
 
-    // ── command ───────────────────────────────────────────
-    // command → COMMAND ( expression , expression , ... ) ;
+    // ============================================================
+    // STEP 5 — parseCommand() WITH validateCommandArgs() CALL
+    // ============================================================
 
-    private CommandNode parseCommand() {
-        Token cmdToken = advance(); // consume command keyword
+    private ASTNode parseCommand() {
+        Token cmdToken = advance();
         String cmdName = cmdToken.lexeme;
+        int cmdLine = cmdToken.line;        // ← save line for error reporting
 
         expect(TokenType.LPAREN, "(");
 
         List<ASTNode> args = new ArrayList<>();
-
-        // Parse comma-separated argument list
         if (current().type != TokenType.RPAREN) {
             args.add(parseExpression());
             while (current().type == TokenType.COMMA) {
-                advance(); // consume comma
+                advance();
                 args.add(parseExpression());
             }
         }
 
         expect(TokenType.RPAREN, ")");
-        expectSemicolonOrNewline();
+        expectSemicolon();
+
+        validateCommandArgs(cmdName, args, cmdLine);   // ← STEP 5: call validation here
 
         return new CommandNode(cmdName, args);
     }
 
-    // ── assignment ────────────────────────────────────────
-    // assignment → IDENTIFIER := expression ;
+    // ============================================================
+    // parseAssignment() — NO CHANGES NEEDED HERE
+    // ============================================================
 
-    private AssignNode parseAssignment() {
-        Token nameToken = advance();   // identifier
-        advance();                     // :=
+    private ASTNode parseAssignment() {
+        Token nameToken = advance();
+        advance(); // consume :=
         ASTNode value = parseExpression();
-        expectSemicolonOrNewline();
+        expectSemicolon();
         return new AssignNode(nameToken.lexeme, value);
     }
 
-    // ── expression (addition / subtraction) ──────────────
-    // expression → term (('+' | '-') term)*
+    // ============================================================
+    // EXPRESSION PARSING — NO CHANGES
+    // ============================================================
 
     private ASTNode parseExpression() {
         ASTNode left = parseTerm();
-
-        while (current().type == TokenType.OP || current().type == TokenType.OP) {
+        while (current().type == TokenType.OP
+                || current().type == TokenType.OP) {
             String op = advance().lexeme;
             ASTNode right = parseTerm();
             left = new BinaryNode(op, left, right);
         }
-
         return left;
     }
 
-    // ── term (multiplication / division) ─────────────────
-    // term → factor (('*' | '/') factor)*
-
     private ASTNode parseTerm() {
         ASTNode left = parseFactor();
-
-        while (current().type == TokenType.OP || current().type == TokenType.OP) {
+        while (current().type == TokenType.OP
+                || current().type == TokenType.OP) {
             String op = advance().lexeme;
             ASTNode right = parseFactor();
             left = new BinaryNode(op, left, right);
         }
-
         return left;
     }
-
-    // ── factor ────────────────────────────────────────────
-    // factor → NUMBER | IDENTIFIER | '(' expression ')'
 
     private ASTNode parseFactor() {
         Token t = current();
@@ -151,63 +128,161 @@ public class Parser {
         }
 
         if (t.type == TokenType.LPAREN) {
-            advance(); // consume (
+            advance();
             ASTNode expr = parseExpression();
             expect(TokenType.RPAREN, ")");
             return expr;
         }
 
-        // Error recovery
-        System.out.println("SYNTAX ERROR: Expected expression but found '" + t.lexeme + "' at line " + t.line);
+        System.out.println("SYNTAX ERROR: Unexpected token '"
+                + t.lexeme + "' at line " + t.line);
         advance();
-        return new NumberNode(0); // placeholder to keep going
+        return new NumberNode(0);
     }
 
-    // ── helpers ───────────────────────────────────────────
+    // ============================================================
+    // STEP 3 — validateCommandArgs()
+    // ADD THIS AFTER parseCommand()
+    // ============================================================
+
+    private void validateCommandArgs(String commandName,
+                                     List<ASTNode> args,
+                                     int line) {
+        for (int i = 0; i < args.size(); i++) {
+            ASTNode arg = args.get(i);
+
+            // Skip check if arg contains a variable — we don't know its value yet
+            if (containsIdentifier(arg)) continue;
+
+            int result = evaluate(arg);
+
+            if (result < 0) {
+                System.out.println("SEMANTIC ERROR: Argument " + (i + 1)
+                        + " of '" + commandName
+                        + "' evaluates to negative value (" + result + ")"
+                        + " at line " + line
+                        + " — drawing coordinates must be non-negative.");
+            }
+        }
+    }
+
+    // ============================================================
+    // STEP 1 — evaluate()
+    // ADD THIS AFTER validateCommandArgs()
+    // ============================================================
+
+    private int evaluate(ASTNode node) {
+
+        // Base case: plain number — just return its value
+        if (node instanceof NumberNode) {
+            return ((NumberNode) node).value;
+        }
+
+        // Binary operation: evaluate left and right, then apply operator
+        if (node instanceof BinaryNode) {
+            BinaryNode bin = (BinaryNode) node;
+            int left  = evaluate(bin.left);
+            int right = evaluate(bin.right);
+
+            switch (bin.op) {
+                case "+": return left + right;
+                case "-": return left - right;
+                case "*": return left * right;
+                case "/":
+                    if (right == 0) {
+                        System.out.println("SEMANTIC ERROR: Division by zero"
+                                + " at line " + currentLine());
+                        return 0;
+                    }
+                    return left / right;
+            }
+        }
+
+        // Identifier: unknown value at parse time, return 0 and skip check
+        if (node instanceof IdentifierNode) {
+            return 0;
+        }
+
+        return 0;
+    }
+
+    // ============================================================
+    // STEP 4 — containsIdentifier()
+    // ADD THIS AFTER evaluate()
+    // ============================================================
+
+    private boolean containsIdentifier(ASTNode node) {
+
+        // If the node itself is an identifier → true
+        if (node instanceof IdentifierNode) {
+            return true;
+        }
+
+        // If it's a binary node, check both children recursively
+        if (node instanceof BinaryNode) {
+            BinaryNode bin = (BinaryNode) node;
+            return containsIdentifier(bin.left)
+                || containsIdentifier(bin.right);
+        }
+
+        // NumberNode has no identifier inside it
+        return false;
+    }
+
+    // ============================================================
+    // STEP 2 — currentLine()
+    // ADD THIS AFTER containsIdentifier()
+    // ============================================================
+
+    private int currentLine() {
+        return tokens.get(pos).line;
+    }
+
+    // ============================================================
+    // HELPER METHODS — NO CHANGES
+    // ============================================================
+
+    private void expect(TokenType type, String symbol) {
+        if (current().type == type) {
+            advance();
+        } else {
+            System.out.println("SYNTAX ERROR: Expected '" + symbol
+                    + "' but found '" + current().lexeme
+                    + "' at line " + current().line);
+        }
+    }
+
+    private void expectSemicolon() {
+        if (current().type == TokenType.SEMICOLON) {
+            advance();
+        } else {
+            System.out.println("SYNTAX ERROR: Expected ';' at end of statement"
+                    + " but found '" + current().lexeme
+                    + "' at line " + current().line);
+        }
+    }
+
+    private void skipNewlines() {
+        while (current().type == TokenType.NEWLINE) {
+            advance();
+        }
+    }
 
     private Token current() {
         return tokens.get(pos);
     }
 
     private Token lookAhead() {
-        if (pos + 1 < tokens.size()) return tokens.get(pos + 1);
+        if (pos + 1 < tokens.size())
+            return tokens.get(pos + 1);
         return tokens.get(tokens.size() - 1);
     }
 
     private Token advance() {
-        Token t = tokens.get(pos);
-        if (pos < tokens.size() - 1) pos++;
-        return t;
+        return tokens.get(pos++);
     }
 
     private boolean isAtEnd() {
         return current().type == TokenType.EOF;
-    }
-
-    private void skipNewlines() {
-        while (current().type == TokenType.NEWLINE) advance();
-    }
-
-    private void expect(TokenType type, String what) {
-        if (current().type == type) {
-            advance();
-        } else {
-            System.out.println("SYNTAX ERROR: Expected '" + what +
-                    "' but found '" + current().lexeme + "' at line " + current().line);
-        }
-    }
-
-    // Accept either ; or newline as statement terminator
-    private void expectSemicolonOrNewline() {
-        if (current().type == TokenType.SEMICOLON) {
-            advance();
-        } else if (current().type == TokenType.NEWLINE) {
-            advance();
-        } else if (current().type == TokenType.EOF) {
-            // fine — last statement with no terminator
-        } else {
-            System.out.println("SYNTAX ERROR: Expected ';' or newline but found '" +
-                    current().lexeme + "' at line " + current().line);
-        }
     }
 }

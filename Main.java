@@ -31,7 +31,7 @@ public class Main {
         // ── Test 4: Nested arithmetic expressions ─────────
         runTest("Test 4 — Nested Arithmetic in Arguments",
             "move((10 + 5) * 2, 100);\n" +
-            "circle(3 * (4 + 6));\n"
+            "circle(3 * (-5));\n"
         );
 
         // ── Test 5: INVALID — missing closing paren ───────

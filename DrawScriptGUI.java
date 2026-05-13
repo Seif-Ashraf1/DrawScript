@@ -177,16 +177,7 @@ public class DrawScriptGUI extends JFrame {
         canvasScroll.setBorder(null);
         tabs.addTab("🎨 Drawing", canvasScroll);
 
-        // Tab 4 – Grammar reference
-        tabs.addTab("📖 Grammar", buildGrammarPanel());
-
-        // Tab 5 – Token spec
-        tabs.addTab("🏷  Token Spec", buildTokenSpecPanel());
-
-        // Tab 6 – Design report
-        tabs.addTab("📋 Report", buildReportPanel());
-
-        // Tab 7 – Errors
+        // Tab 4 – Errors
         errorsArea = new JTextArea();
         errorsArea.setFont(new Font("Monospaced", Font.PLAIN, 13));
         errorsArea.setEditable(false);
