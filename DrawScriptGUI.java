@@ -507,7 +507,7 @@ public class DrawScriptGUI extends JFrame {
                     case "color":
                         if (!vals.isEmpty()) {
                             int g = Math.max(0, Math.min(255, vals.get(0)));
-                            color = new Color(g, g, g);
+                            color = new Color(vals.get(0),vals.get(1), vals.get(2));
                         }
                         break;
                 }
